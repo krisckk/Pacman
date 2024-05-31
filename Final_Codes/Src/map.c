@@ -141,7 +141,7 @@ void delete_map(Map* M) {
 
 		for(int i = 0; i < M -> row_num; i++)
 		{
-				free(M ->map[i]);
+			free(M ->map[i]);
 		}
 		free(M -> map);
 		free(M);

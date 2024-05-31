@@ -13,11 +13,12 @@ static ALLEGRO_SAMPLE_ID PACMAN_MOVESOUND_ID;
 // But before you modify this, make sure you are 
 // totally understand the meaning of speed and function
 // `step()` in `scene_game.c`, also the relationship between
-// `speed`, `GAME_TICK`, `GAME_TICK_CD`, `objData->moveCD`.
-static const int basic_speed = 2;
+// `speed`, `GAME_TICK`, `GAME_TICK_CD`, `objData->moveCD`.	
+extern int basic_speed = 2;
 /* Shared variables */
 extern ALLEGRO_SAMPLE* PACMAN_MOVESOUND;
 extern ALLEGRO_SAMPLE* PACMAN_DEATH_SOUND;
+extern ALLEGRO_SAMPLE* PACMAN_POWERUPSOUND;
 extern uint32_t GAME_TICK;
 extern uint32_t GAME_TICK_CD;
 extern bool game_over;
@@ -65,6 +66,7 @@ static bool pacman_movable(const Pacman* pacman, const Map* M, Directions target
 
 Pacman* pacman_create() {
 	game_log("pacman created");
+	
 	// Allocate dynamic memory for pman pointer;
 	Pacman* pman = (Pacman*)malloc(sizeof(Pacman));
 	if (!pman)
@@ -82,8 +84,6 @@ Pacman* pacman_create() {
 	pman -> ghosteaten = 0;// initialize ghosteaten
 	pman -> score = 0;// initialize pacman score
 	pman -> wall_hack = 0;//initialize pacman wall hack
-	pman -> yellow = false;//initialize pacman as yellow
-	pman -> purple = true;//initialize pacman as non purple
 	pman->death_anim_counter = al_create_timer(1.0f / 8.0f);
 	pman->powerUp = false;
 	/* load sprites */
@@ -114,109 +114,112 @@ void pacman_draw(Pacman* pman)
 	// -animation: Draw Pacman and animations
 	// hint: use pman->objData.moveCD to determine which frame of the animation to draw
 	RecArea drawArea = getDrawArea((object *)pman, GAME_TICK_CD);
-
-	//Draw default image
-	
 	int offset = 0;
 	if (!game_over) {
 		// TODO-GC-animation: We have two frames for each direction. You can use the value of pman->objData.moveCD to determine which frame of the animation to draw.
 		// For example, if the value if (mod 16) is less than 8, draw 1st frame. Otherwise, draw 2nd frame.
 		// But this frame rate may be a little bit too high. We can use % 32 and draw 1st frame if value is 0~15, and 2nd frame if value is 16~31.
-		
+		/*
 		if(pman->objData.moveCD % 64 < 31){
 			offset = 0;
 		}
 		else if(pman->objData.moveCD % 64 >= 31){
 			offset = 16;
 		}
+		*/
 		/*
 		NOTE: since modulo operation is expensive in clock cycle perspective (reference: https://stackoverflow.com/questions/27977834/why-is-modulus-operator-slow)
 			, you can use & (bitwise and) operator to determine a value is odd or even.
 			e.g. If (val & 1 == 1) is true then `val` is odd. If (val & 1 == 0) is false then `val` is even.
 			e.g. Similarly, if ((val>>4) & 1 == 0) is true then `val % 32` is 0~15, if ((val>>4) & 1 == 1) is true then `val % 32` is 16~31. 
 		*/
-		if(pman -> yellow == false && pman -> purple == true)
+		if(purplepman == 1 && yellowpman == 0)
 		{
-		
-		switch(pman->objData.facing)
-		{
-		case LEFT:
-			al_draw_scaled_bitmap(pman->purple_move_sprite, 32 + offset, 0,
-				16, 16,
-				drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
-				draw_region, draw_region, 0
-			);
-			break;
-		case RIGHT:
-			al_draw_scaled_bitmap(pman->purple_move_sprite, 0 + offset, 0,
-				16, 16,
-				drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
-				draw_region, draw_region, 0
-			);
-			break;
-		case UP:
-			al_draw_scaled_bitmap(pman->purple_move_sprite, 64 + offset, 0,
-				16, 16,
-				drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
-				draw_region, draw_region, 0
-			);
-			break;
-		case DOWN:
-			al_draw_scaled_bitmap(pman->purple_move_sprite, 96 + offset, 0,
-				16, 16,
-				drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
-				draw_region, draw_region, 0
-			);
-			break;
-		default:
-			al_draw_scaled_bitmap(pman->purple_die_sprite, 0, 0,
-				16, 16,
-				drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
-				draw_region, draw_region, 0
-			);
-			break;
-		}
-		}
-		else if(pman -> yellow == true && pman -> purple == false)
-		{
+			if(pman->objData.moveCD % 32 < 16)	offset = 0;
+			else if(pman->objData.moveCD % 32 >= 16)	offset = 16;
+			
 			switch(pman->objData.facing)
-		{
-		case LEFT:
-			al_draw_scaled_bitmap(pman->yellow_move_sprite, 32 + offset, 0,
-				16, 16,
-				drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
-				draw_region, draw_region, 0
-			);
-			break;
-		case RIGHT:
-			al_draw_scaled_bitmap(pman->yellow_move_sprite, 0 + offset, 0,
-				16, 16,
-				drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
-				draw_region, draw_region, 0
-			);
-			break;
-		case UP:
-			al_draw_scaled_bitmap(pman->yellow_move_sprite, 64 + offset, 0,
-				16, 16,
-				drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
-				draw_region, draw_region, 0
-			);
-			break;
-		case DOWN:
-			al_draw_scaled_bitmap(pman->yellow_move_sprite, 96 + offset, 0,
-				16, 16,
-				drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
-				draw_region, draw_region, 0
-			);
-			break;
-		default:
-			al_draw_scaled_bitmap(pman->yellow_die_sprite, 0, 0,
-				16, 16,
-				drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
-				draw_region, draw_region, 0
-			);
-			break;
+			{
+				case LEFT:
+					al_draw_scaled_bitmap(pman->purple_move_sprite, 32 + offset, 0,
+					16, 16,
+					drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
+					draw_region, draw_region, 0
+					);
+				break;
+				case RIGHT:
+					al_draw_scaled_bitmap(pman->purple_move_sprite, 0 + offset, 0,
+					16, 16,
+					drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
+					draw_region, draw_region, 0
+					);
+				break;
+				case UP:
+					al_draw_scaled_bitmap(pman->purple_move_sprite, 64 + offset, 0,
+					16, 16,
+					drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
+					draw_region, draw_region, 0
+					);
+				break;
+				case DOWN:
+					al_draw_scaled_bitmap(pman->purple_move_sprite, 96 + offset, 0,
+					16, 16,
+					drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
+					draw_region, draw_region, 0
+					);
+				break;
+				default:
+					al_draw_scaled_bitmap(pman->purple_die_sprite, 0, 0,
+					16, 16,
+					drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
+					draw_region, draw_region, 0
+					);
+				break;
+			}
 		}
+		else if(yellowpman == 1 && purplepman == 0)
+		{
+			if(pman->objData.moveCD % 64 < 31)	offset = 0;
+			else if(pman->objData.moveCD % 64 >= 31)	offset = 16;
+			
+			switch(pman->objData.facing)
+			{
+				case LEFT:
+					al_draw_scaled_bitmap(pman->yellow_move_sprite, 32 + offset, 0,
+					16, 16,
+					drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
+					draw_region, draw_region, 0
+					);
+				break;
+				case RIGHT:
+					al_draw_scaled_bitmap(pman->yellow_move_sprite, 0 + offset, 0,
+					16, 16,
+					drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
+					draw_region, draw_region, 0
+					);
+				break;
+				case UP:
+					al_draw_scaled_bitmap(pman->yellow_move_sprite, 64 + offset, 0,
+					16, 16,
+					drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
+					draw_region, draw_region, 0
+					);
+				break;
+				case DOWN:
+					al_draw_scaled_bitmap(pman->yellow_move_sprite, 96 + offset, 0,
+					16, 16,
+					drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
+					draw_region, draw_region, 0
+					);
+				break;
+				default:
+					al_draw_scaled_bitmap(pman->yellow_die_sprite, 0, 0,
+					16, 16,
+					drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
+					draw_region, draw_region, 0
+					);
+				break;
+			}
 		}
 	}
 	else 
@@ -224,15 +227,15 @@ void pacman_draw(Pacman* pman)
 		// TODO-GC-animation: Draw die animation(pman->die_sprite)
 		// hint: instead of using pman->objData.moveCD, use pman->death_anim_counter to create animation.
 		// refer al_get_timer_count and al_draw_scaled_bitmap. Suggestion frame rate: 8fps.
-		if(pman -> yellow == false && pman -> purple == true)
+		if(purplepman == 1 && yellowpman == 0)
 		{
-		al_draw_scaled_bitmap(pman->purple_die_sprite, 16 * al_get_timer_count(pman->death_anim_counter), 0,
+		al_draw_scaled_bitmap(pman->purple_die_sprite, 32 * al_get_timer_count(pman->death_anim_counter), 0,
 			16, 16,
 			drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
 			draw_region, draw_region, 0
 		);
 		}
-		else if (pman -> yellow == true && pman -> purple == false)
+		else if (yellowpman == 1 && purplepman == 0)
 		{
 		al_draw_scaled_bitmap(pman->yellow_die_sprite, 16 * al_get_timer_count(pman->death_anim_counter), 0,
 			16, 16,
@@ -291,11 +294,10 @@ void pacman_eatItem(Pacman* pacman, const char Item)
 	// TODO-GC-PB: set pacman powerUp mode
 	
 	case 'P':
-	 	pacman -> powerUp = true;
+		pacman -> powerUp = true;
 		stop_bgm(PACMAN_MOVESOUND_ID);
-		PACMAN_MOVESOUND_ID = play_audio(PACMAN_MOVESOUND, 3);
+		PACMAN_MOVESOUND_ID = play_audio(PACMAN_POWERUPSOUND, effect_volume);
 		break;
-	
 	default:
 		break;
 	}

@@ -17,10 +17,11 @@
 #include "game.h"
 #include "scene_game.h" 
 #include "scene_menu.h"
+#include "Home.h"
 /* global variables*/
 const int FPS = 60;
-const int SCREEN_W = 800;
-const int SCREEN_H = 800;
+const int SCREEN_W = 1800;
+const int SCREEN_H = 1200;
 const int RESERVE_SAMPLES = 4;
 Scene active_scene;
 bool key_state[ALLEGRO_KEY_MAX];
@@ -28,17 +29,18 @@ bool* mouse_state;
 /* Shared variables. */
 int mouse_x, mouse_y;
 uint32_t GAME_TICK = 0;
-const uint32_t GAME_TICK_CD = 64;
+const uint32_t GAME_TICK_CD = 32;
 ALLEGRO_TIMER* game_tick_timer;
 extern bool gameDone;
-
+extern bool key_pressed;
 /* Internal variables. */
 static ALLEGRO_DISPLAY* game_display;
 static ALLEGRO_TIMER* game_update_timer;
-static const char* game_title = "I2P(I)_2021 Final Project Template";
+static const char* game_title = "Aim Lab Music Game";
 
 /* Declare static function prototypes. */
-
+bool ctrl_state = false;
+int ctrl_count = 0;
 // Initialize allegro5 library
 static void allegro5_init(void);
 // Init variables and load resources, change scenes here.
@@ -189,12 +191,26 @@ static void game_start_event_loop(void) {
 				gameDone = true;
 				continue;
 			}
+			if (event.keyboard.keycode == 217)
+			{
+				ctrl_state = true;
+				ctrl_count = 1;
+			}
+			else if (ctrl_count && event.keyboard.keycode != 217)
+			{
+				ctrl_state = true;
+				ctrl_count = 0;
+			}
+			else ctrl_state = false;
+
 			if (active_scene.on_key_down)
 				(*active_scene.on_key_down)(event.keyboard.keycode);
 		}
 		else if (event.type == ALLEGRO_EVENT_KEY_UP) {
 			// Event for keyboard key up.
-			//game_log("Key with keycode %d up", event.keyboard.keycode);
+			game_log("Key with keycode %d up", event.keyboard.keycode);
+			key_pressed = false;
+			game_log("false");
 			key_state[event.keyboard.keycode] = false;
 			if (active_scene.on_key_up)
 				(*active_scene.on_key_up)(event.keyboard.keycode);
@@ -285,6 +301,22 @@ void game_change_scene(Scene next_scene) {
 	al_set_timer_count(game_tick_timer, 0);
 	al_start_timer(game_tick_timer);
 }
+
+/*
+void game_over() {
+  show_popup();
+  
+  char name[32];
+  get_name_input(name);
+  
+  add_high_score(name, score);
+  
+  load_high_scores(high_scores);
+  sort_high_scores(high_scores);
+  
+  hide_popup();
+}
+*/
 
 // +=================================================================+
 // | Code below is for debugging purpose, it's fine to remove it.    |

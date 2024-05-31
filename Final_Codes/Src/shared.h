@@ -6,17 +6,24 @@
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_audio.h>
 
+
 // TODO-IF: Shared constant variable (without initializing value).
 
 // TODO-IF: More shared resources or data that needed to be accessed
 // across different scenes. initialize the value in 'shared.c'.;
-;
 extern ALLEGRO_FONT* font_pirulen_32;
 extern ALLEGRO_FONT* font_pirulen_24;
-extern ALLEGRO_SAMPLE* themeMusic;
+extern ALLEGRO_SAMPLE* themeMusicoriginal;
+extern ALLEGRO_SAMPLE* themeMusicintermission;
 extern ALLEGRO_SAMPLE* PACMAN_MOVESOUND;
+extern ALLEGRO_SAMPLE* PACMAN_POWERUPSOUND;
 extern ALLEGRO_SAMPLE* PACMAN_DEATH_SOUND;
 extern ALLEGRO_FONT* menuFont;
+extern ALLEGRO_FONT* minecraftFont;
+extern ALLEGRO_FONT* FFF_Font;
+extern ALLEGRO_FONT* darkknightFont;
+extern ALLEGRO_FONT* PoetFont;
+
 extern int fontSize;
 extern float music_volume;
 extern float effect_volume;

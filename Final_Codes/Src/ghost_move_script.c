@@ -46,7 +46,6 @@ static void ghost_move_script_FREEDOM_random(Ghost* ghost, Map* M) {
 		case LEFT:
 			counter_one = RIGHT;
 			break;
-		
 	}
 	static Directions proba[4]; // possible movement
 	int cnt = 0;
@@ -256,6 +255,8 @@ void ghost_move_script_shortest_path(Ghost* ghost, Map* M, Pacman* pacman) {
 		case FLEE:
 			ghost_move_script_FLEE(ghost, M, pacman);
 			break;
+		case STOP:
+			ghost -> objData.nextTryMove = NONE;
 		default:
 			break;
 		}

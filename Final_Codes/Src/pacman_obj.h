@@ -15,7 +15,7 @@
 
 typedef struct Ghost Ghost;
 typedef struct Map Map;
-
+static int basic_speed;
 typedef struct Pacman{
 	object objData;
 	bitmapdata imgdata;
@@ -26,8 +26,6 @@ typedef struct Pacman{
 	int ghosteaten;//how many ghost eaten
 	int score;//how mnay points did pacman score
 	bool powerUp; // *important: this boolean indicates if pacman is in power bean mode now.
-	bool purple;//chech which pacman it is
-	bool yellow;//
 	ALLEGRO_TIMER* death_anim_counter;
 	ALLEGRO_BITMAP* yellow_move_sprite;
 	ALLEGRO_BITMAP* purple_move_sprite;
@@ -44,5 +42,4 @@ void pacman_eatItem(Pacman* pacman, const char Item);
 
 void pacman_NextMove(Pacman* pacman, Directions next);
 void pacman_die();
-
 #endif // !PACMAN_OBJ_H

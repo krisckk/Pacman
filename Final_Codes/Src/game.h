@@ -48,6 +48,7 @@ typedef struct {
 	func_ptr_mouse on_mouse_up;
 	func_ptr_mouse on_mouse_scroll;
 	// TODO-IF: More event callbacks such as timer tick, video finished, ...
+	//func_ptr store;
 } Scene;
 
 // Frame rate (frame per second)
@@ -98,4 +99,7 @@ void game_log(const char* format, ...);
 extern void shared_init(void);
 // Free shared variables and resources.
 extern void shared_destroy(void);
+
+bool ctrl_state;
+int ctrl_count;
 #endif

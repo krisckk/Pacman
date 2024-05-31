@@ -8,8 +8,10 @@
 #include "scene_game.h"
 #include "scene_menu.h"
 #include "pacman_obj.h"
+#include "scene_settings.h"
 #include "ghost.h"
 #include "map.h"
+#include "popupbox.h"
 
 
 
@@ -34,6 +36,8 @@ static Ghost** ghosts;
 bool debug_mode = false;
 bool cheat_mode = false;
 
+extern highscore Highscore;
+//char livescoretext[1000];
 /* Declare static function prototypes */
 static void init(void);
 static void step(void);
@@ -64,6 +68,7 @@ static void init(void) {
 	if (!pman) {
 		game_abort("error on creating pacamn\n");
 	}
+	set_pacman(pman);
 	// allocate ghost memory
 	// TODO-HACKATHON 2-1: Allocate dynamic memory for ghosts array.
 	
@@ -214,9 +219,8 @@ static void update(void) {
 		if(al_get_timer_started(pman -> death_anim_counter) && al_get_timer_count(pman -> death_anim_counter) > 12)
 		{
 			al_stop_timer(pman -> death_anim_counter);
-			game_change_scene(scene_menu_create());
+			game_change_scene(scene_popupbox_create());
 		}
-
 		return;
 	
 	}
@@ -229,15 +233,16 @@ static void update(void) {
 		ghosts[i]->move_script(ghosts[i], basic_map, pman);
 }
 
+
 static void draw(void) 
 {
-	
+
 	al_clear_to_color(al_map_rgb(0, 0, 0));
 
 	
 	// TODO-GC-scoring: Draw scoreboard, something your may need is sprinf();
 	
-	char livescoretext[10000];
+	
 	if (pman -> ghosteaten > 1)
 	{
 		pman -> score =  (pman -> beanseaten) * 1 + (pman -> ghosteaten) * 400 -200;
@@ -248,8 +253,9 @@ static void draw(void)
 		pman -> score = (pman -> beanseaten) * 1 + (pman -> ghosteaten) * 200;
 		sprintf(livescoretext, "Score = %d", pman -> score);
 	}
-	
-	al_draw_text(menuFont, al_map_rgb(255, 255, 255), 50, 700, 0, livescoretext);
+	endscore = pman -> score;
+	al_draw_text(menuFont , al_map_rgb(34, 139, 34), 50, 700, 0, livescoretext);
+	//Highscore.score[0] = *livescoretext;
 	//draw a text to show cheat mode on or off
 	if(cheat_mode)
 	{
@@ -315,11 +321,12 @@ static void destroy(void) {
 
 static void on_key_down(int key_code) {
 	printf("hi");
+	if (downchange == false && upchange == false && leftchange == false && rightchange == false)
+	{
 	switch (key_code)
 	{
 		// TODO-HACKATHON 1-1: Use allegro pre-defined enum ALLEGRO_KEY_<KEYNAME> to controll pacman movement
-		// we provided you a function `pacman_NextMove` to set the pacman's next move direction.
-		
+		// we provided you a function `pacman_NextMove` to set the pacman's next move direction.	
 		case ALLEGRO_KEY_W:
 			pacman_NextMove(pman, UP);
 			break;
@@ -340,48 +347,85 @@ static void on_key_down(int key_code) {
 			else 
 				printf("cheat mode off\n");
 			break;
-		//cheat mode press K key to make ghosts to go back
-		case ALLEGRO_KEY_K:
-			if (cheat_mode)
-			{
-				for(int i = 0; i < GHOST_NUM; i++)
-				{
-					if(ghosts[i] -> status == FREEDOM)	ghosts[i] -> status = GO_IN;
-					else if (ghosts[i] -> status == GO_IN) ghosts[i] -> status = FREEDOM;
-				}
-			}
-			break;
+		
 		int currentX =  pman->objData.Coord.x, currentY = pman->objData.Coord.y;
 		
-		/*
-		case ALLEGRO_KEY_COMMAND:
-			if(cheat_mode)
-			{
-				if (key_code == ALLEGRO_KEY_S)
-				{
-					for (int  i = 0; i < GHOST_NUM; i++)
-					{
-						if (ghosts[i] -> status == FREEDOM) ghosts[i] ->status = STOP;
-						else if (ghosts[i] -> status == STOP) ghosts[i] -> status = FREEDOM;
-					}
-					
-				}
-				else if (key_code == ALLEGRO_KEY_L)
-				{
-					if (pman -> wall_hack == 1) pman -> wall_hack = 0;
-					else if (pman -> wall_hack == 0) pman -> wall_hack = 1;
-				}
-			}
-			break;
-			*/
+		
 		case ALLEGRO_KEY_G:
 			debug_mode = !debug_mode;
 			break;
 		
-	default:
-		break;
+		default:
+			break;
 	}
-
+	if (cheat_mode)
+	{
+		switch (key_code)
+		{
+			case ALLEGRO_KEY_T:
+				game_over = true;
+			case ALLEGRO_KEY_K:
+				for (int i = 0; i < GHOST_NUM; i++)
+				{
+					if (ghosts[i] -> status == FREEDOM)	
+					{
+						ghosts[i] -> status = GO_IN;
+						ghosts[i] -> speed = 4;
+					}
+					else if (ghosts[i] ->status == FLEE)
+					{
+						ghosts[i] -> status = GO_IN;
+						ghosts[i] -> speed = 4;
+					}
+					else if (ghosts[i] -> status == GO_IN) 
+					{
+						ghosts[i] -> status = FREEDOM;
+						ghosts[i] -> speed = 2;
+					}
+				}
+				break;
+			case ALLEGRO_KEY_S:
+				if (ctrl_state && ghosts[0] -> speed == 2) 
+				{
+					game_log("STOP");
+					for (int i = 0; i < GHOST_NUM; i++)
+					{
+						ghosts[i] -> speed = 0;
+					}
+					
+				}
+				else if (ctrl_state && ghosts[0] -> speed == 0)
+				{
+					for (int i = 0; i < GHOST_NUM; i++)
+					{
+						ghosts[i] -> speed = 2;
+					}
+				}
+				else if (cheat_mode && ctrl_state == false) pacman_NextMove(pman, DOWN);
+				break;
+			case ALLEGRO_KEY_L:
+				if(ctrl_state && pman -> wall_hack == 0)
+				{
+					pman -> wall_hack = 1;
+				}
+				else if(ctrl_state && pman -> wall_hack == 1)
+				{
+					pman -> wall_hack = 0;
+				}
+				break;
+			default:
+				break;
+		}
+	}
+	}
+	else if(key_code)
+	{
+		char key_pressed = key_code - 1 + 'A';
+		if (key_pressed == upbutton[0]) pacman_NextMove(pman, UP);
+		else if (key_pressed == leftbutton[0]) pacman_NextMove(pman, LEFT);
+		else if (key_pressed == rightbutton[0]) pacman_NextMove(pman, RIGHT);
+		else if (key_pressed == downbutton[0]) pacman_NextMove(pman, DOWN);
+	}
 }
 
 static void on_mouse_down(int btn, int x, int y, int dz) {
@@ -400,7 +444,7 @@ static void render_init_screen(void) {
 	}
 
 	al_draw_text(
-		menuFont,
+		minecraftFont,
 		al_map_rgb(255, 255, 0),
 		400, 400,
 		ALLEGRO_ALIGN_CENTER,
@@ -411,6 +455,9 @@ static void render_init_screen(void) {
 	al_rest(2.0);
 
 }
+
+
+
 // Functions without 'static', 'extern' prefixes is just a normal
 // function, they can be accessed by other files using 'extern'.
 // Define your normal function prototypes below.

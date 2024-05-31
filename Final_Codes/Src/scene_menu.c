@@ -6,6 +6,7 @@
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_native_dialog.h>
 #include <math.h>
+#include "Home.h"
 #include "scene_menu_object.h"
 #include "scene_settings.h"
 #include "scene_game.h"
@@ -14,10 +15,10 @@
 #include "shared.h"
 
 /* Internal Variables*/
-static ALLEGRO_BITMAP* gameTitle = NULL;
+static ALLEGRO_BITMAP* Menubackground = NULL;
+static ALLEGRO_BITMAP* AimlabIcon = NULL;
+static ALLEGRO_BITMAP* Audacity = NULL;
 static ALLEGRO_SAMPLE_ID menuBGM;
-static int gameTitleW ;
-static int gameTitleH ;
 
 // [HACKATHON 3]
 // TARGET : use a clickable button to enter setting scene.
@@ -32,46 +33,42 @@ static void init() {
 
 	// TODO-HACKATHON 3-2: Create button to settings
 	// Uncomment and fill the code below
-	btnSettings = button_create(730, 20, 50, 50, "Assets/settings.png", "Assets/settings2.png");
-
-	gameTitle = load_bitmap("Assets/title.png");
-	gameTitleW = al_get_bitmap_width(gameTitle);
-	gameTitleH = al_get_bitmap_height(gameTitle);
+	btnSettings = button_create(SCREEN_W - 70, 20, 50, 50, "Assets/settings.png", "Assets/settings2.png");
+	Menubackground = load_bitmap("Assets/Images/Menubackground.jpg");
+	AimlabIcon = load_bitmap("Assets/Images/Aimlab.png");
+	Audacity = load_bitmap("Assets/Images/Audacity.png");
 	stop_bgm(menuBGM);
-	menuBGM = play_bgm(themeMusic, music_volume);
+	if (intermission == 1) game_log("you chooses intermission");
+	else if (originaltheme == 1) game_log("you chooses original theme");
+	if (intermission == 1) menuBGM = play_bgm(themeMusicintermission, music_volume);
+	else if (originaltheme == 1) menuBGM = play_bgm(themeMusicoriginal, music_volume);
 
 }
 
 
-static void draw() {
+static void draw() 
+{
 
 	al_clear_to_color(al_map_rgb(0, 0, 0));
-
-	const float scale = 0.7;
-	const float offset_w = (SCREEN_W >> 1) - 0.5 * scale * gameTitleW;
-	const float offset_h = (SCREEN_H >> 1) - 0.5 * scale * gameTitleH;
-
+	int halfW = SCREEN_W / 2;
+	int halfH = SCREEN_H / 2;
 	//draw title image
 	al_draw_scaled_bitmap(
-		gameTitle,
+		Menubackground,
 		0, 0,
-		gameTitleW, gameTitleH,
-		offset_w, offset_h,
-		gameTitleW * scale, gameTitleH * scale,
+		3000, 2000,
+		0, 0,
+		SCREEN_W, SCREEN_H,
 		0
 	);
-	al_draw_text(
-		menuFont,
-		al_map_rgb(255, 255, 255),
-		SCREEN_W/2,
-		SCREEN_H - 150,
-		ALLEGRO_ALIGN_CENTER,
-		"PRESS <ENTER>"
-	);
+	al_draw_scaled_bitmap(AimlabIcon, 0, 0, 64, 64, halfW - 600, halfH - 100, 240, 240, 0);
+    al_draw_scaled_bitmap(Audacity, 0, 0, 64, 64, halfW + 360, halfH - 100, 240, 240, 0);
+    al_draw_text(darkknightFont, al_map_rgb(255, 255, 255), halfW - 175, halfH - 100, 0, "AIM LAB MUSIC");
+    al_draw_text(minecraftFont, al_map_rgb(255, 255, 255), halfW - 275, halfH + 50, 0, "Press ENTER to start");
 
-		// TODO-HACKATHON 3-3: Draw button
-		// Uncomment and fill the code below
-		drawButton(btnSettings);
+	// TODO-HACKATHON 3-3: Draw button
+	// Uncomment and fill the code below
+	drawButton(btnSettings);
 
 }
 
@@ -99,7 +96,9 @@ static void on_mouse_down() {
 
 static void destroy() {
 	stop_bgm(menuBGM);
-	al_destroy_bitmap(gameTitle);
+	al_destroy_bitmap(Menubackground);
+	al_destroy_bitmap(AimlabIcon);
+	al_destroy_bitmap(Audacity);
 	//	TODO-HACKATHON 3-10: Destroy button images
 	//	Uncomment and fill the code below
 	
@@ -112,7 +111,7 @@ static void on_key_down(int keycode) {
 
 	switch (keycode) {
 		case ALLEGRO_KEY_ENTER:
-			game_change_scene(scene_main_create());
+			game_change_scene(scene_home_create());
 			break;
 		default:
 			break;
@@ -136,9 +135,6 @@ Scene scene_menu_create(void) {
 	scene.destroy = &destroy;
 	scene.on_key_down = &on_key_down;
 	scene.on_mouse_move = &on_mouse_move;
-	// TODO-HACKATHON 3-9: Register on_mouse_down.
-	// Uncomment the code below.
-	
 	scene.on_mouse_down = &on_mouse_down;
 	
 	// -------------------------------------

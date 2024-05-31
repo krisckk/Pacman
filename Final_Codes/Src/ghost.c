@@ -26,7 +26,7 @@ static const int draw_region = 30;
 // fancy with speed, objData->moveCD and GAME_TICK, you can first start on 
 // working on animation of ghosts and pacman. // Once you finished the animation 
 // part, you will have more understanding on whole mechanism.
-static const int basic_speed = 2;
+static int basic_speed = 2;
 
 /// @brief 
 /// @param flag 
@@ -133,7 +133,7 @@ void ghost_draw(Ghost* ghost) {
 				{
 					offset = 16;
 				}
-				al_draw_scaled_bitmap(ghost->flee_sprite, 16 + offset + bitmap_x_offset, 0,
+				al_draw_scaled_bitmap(ghost->flee_sprite, 0 + offset + bitmap_x_offset, 0,
 				16, 16,
 				drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
 				draw_region, draw_region, 0
@@ -205,7 +205,7 @@ void ghost_draw(Ghost* ghost) {
 				break;		
 		}
 	}
-	/*
+	
 	else if (ghost -> status == STOP)
 	{
 		RecArea drawArea = getDrawArea((object *)ghost, GAME_TICK_CD);
@@ -242,7 +242,7 @@ void ghost_draw(Ghost* ghost) {
 				break;		
 		}
 	}
-	*/
+	
 	else 
 	{
 		// TODO-GC-animation: ghost animation
@@ -356,6 +356,8 @@ bool ghost_movable(const Ghost* ghost, const Map* M, Directions targetDirec, boo
 	case RIGHT:
 		currentX++;
 		break;
+	case NONE:
+		break;
 	default:
 		// for none UP, DOWN, LEFT, RIGHT direction u should return false.
 		return false;
@@ -375,21 +377,31 @@ void ghost_toggle_FLEE(Ghost* ghost, bool setFLEE) {
 	// For those who are not (BLOCK, GO_IN, etc.), they won't change state.
 	// Spec above is based on the classic PACMAN game.
 	// setFLEE = true => set to FLEE, setFLEE = false => reset to FREEDOM
-	
-	if(setFLEE){
+	if(ghost -> speed == 0)
+	{
+
+	}
+	else
+	{
+		if(setFLEE)
+		{
 		// set FREEDOM ghost's status to FLEE and make them slow 
-		if(ghost -> status == FREEDOM){
-			ghost -> status = FLEE;
-			ghost->speed = 1;
+			if(ghost -> status == FREEDOM)
+			{
+				ghost -> status = FLEE;
+				ghost->speed = 1;
+			}
 		}
-	}else{
-		// set FLEE ghost's status to FREEDOM and then down
-		if(ghost -> status == FLEE){
-			ghost -> status = FREEDOM;
-			ghost->speed = 2;
+		else
+		{
+			// set FLEE ghost's status to FREEDOM and then down
+			if(ghost -> status == FLEE)
+			{
+				ghost -> status = FREEDOM;
+				ghost->speed = 2;
+			}
 		}
 	}
-	
 }
 
 void ghost_collided(Ghost* ghost) {
